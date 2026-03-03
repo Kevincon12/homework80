@@ -1,11 +1,14 @@
 import express from 'express';
 import cors from 'cors';
+import categoriesRouter from './routes/categories';
 
 const app = express();
 const port = 8000;
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/categories', categoriesRouter);
 
 app.get('/', (req, res) => {
     res.json({ message: 'HOMEWORK80 is running' });
