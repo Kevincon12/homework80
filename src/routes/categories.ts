@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { readData, writeData } from '../db';
-import { Category } from '../types';
+import {Category, Item} from '../types';
 
 const router = Router();
 const fileName = 'categories.json';
@@ -49,16 +49,22 @@ router.post('/', (req, res) => {
 
 router.delete('/:id', (req, res) => {
     const categories = readData<Category>(fileName);
+    const items = readData<Item>('items.json');
     const index = categories.findIndex(c => c.id === req.params.id);
 
-    if (index === -1) {
+    if (index === -1)
         return res.status(404).json({ error: 'Category not found' });
-    }
+
+    const used = items.some(item => item.categoryId === req.params.id);
+
+    if (used)
+        return res.status(400).json({ error: 'Cannot delete category: it is used in items' });
 
     categories.splice(index, 1);
     writeData(fileName, categories);
 
     res.json({ message: 'Category deleted' });
 });
+
 
 export default router;

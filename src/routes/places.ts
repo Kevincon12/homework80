@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {readData, writeData} from "../db";
-import {Place} from "../types";
+import {Item, Place} from "../types";
 import {randomUUID} from "crypto";
 
 
@@ -52,16 +52,20 @@ router.post('/', (req, res) => {
 
 router.delete('/:id', (req, res) => {
     const places = readData<Place>(fileName);
+    const items = readData<Item>('items.json');
     const index = places.findIndex(p => p.id === req.params.id);
 
-    if (index === -1) {
-        return res.status(404).json({error: 'Place Not Found'});
-    }
+    if (index === -1)
+        return res.status(404).json({ error: 'Place not found' });
+
+    const used = items.some(item => item.placeId === req.params.id);
+
+    if (used)
+        return res.status(400).json({ error: 'Cannot delete place: it is used in items' });
 
     places.splice(index, 1);
     writeData(fileName, places);
-
-    res.json({message: 'Deleted Place'});
+    res.json({ message: 'Place deleted' });
 });
 
 export default router;
